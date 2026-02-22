@@ -1,0 +1,6 @@
+id=termux-app-keepalive
+name=Termux KeepAlive
+version=v1.0
+versionCode=1
+author=yourname
+description=Keep specified apps alive and auto-restart on crash or reboot
