@@ -1,6 +1,6 @@
-id=termux-app-keepalive
-name=Termux KeepAlive
+id=termux_keeper
+name=Termux Keeper
 version=v1.0
 versionCode=1
-author=yourname
-description=Keep specified apps alive and auto-restart on crash or reboot
+author=you
+description=Keep Termux and sshd alive forever

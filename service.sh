@@ -1,22 +1,25 @@
 #!/system/bin/sh
+# KernelSU service.sh - 只负责拉起守护链，自己退出
+# 等待系统启动完成
+until [ "$(getprop sys.boot_completed)" = "1" ]; do
+    sleep 5
+done
 
-WORKER="/data/adb/modules/termux-app-keepalive/worker.sh"
-LOG_FILE="/data/adb/modules/termux-app-keepalive/keepalive.log"
+# 再等 30 秒，确保 Termux 相关服务就绪
+sleep 30
 
-log() {
-    mkdir -p "$(dirname $LOG_FILE)"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
+MODDIR="/data/adb/modules/termux_keeper"
+LOG="/data/local/tmp/termux_keeper.log"
+
+log_msg() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG"
 }
 
-# 让自身不容易被 OOM Killer 杀死
-echo -1000 > /proc/$$/oom_score_adj
+log_msg "=== Termux Keeper service.sh started ==="
 
-log "=== Watchdog started ==="
+# 用 setsid + nohup 让 guardian 完全脱离当前进程树
+# 这样 service.sh 退出后 guardian 依然存活
+nohup setsid sh "$MODDIR/scripts/guardian.sh" >> "$LOG" 2>&1 &
 
-# 守护循环：worker 挂了就重启
-while true; do
-    log "Watchdog: launching worker..."
-    sh "$WORKER" >> "$LOG_FILE" 2>&1
-    log "Watchdog: worker exited, restarting in 15s..."
-    sleep 15
-done
+log_msg "Guardian launched with PID $!"
+# service.sh 退出，不阻塞 KernelSU

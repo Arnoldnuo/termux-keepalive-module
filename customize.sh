@@ -1,6 +1,12 @@
 #!/system/bin/sh
-ui_print "- Installing App KeepAlive Module..."
-ui_print "- Creating config directory..."
-mkdir -p /data/adb/termux-keepalive
-ui_print "- Done! Edit service.sh to configure your apps."
-ui_print "- Log file: /data/adb/termux-keepalive/keepalive.log"
+# customize.sh - 模块安装时自动执行
+
+ui_print "- Setting up Termux Keeper..."
+
+# $MODPATH 是 KernelSU/Magisk 安装时的模块目录变量，自动注入
+chmod +x "$MODPATH/service.sh"
+chmod +x "$MODPATH/scripts/guardian.sh"
+chmod +x "$MODPATH/scripts/watchdog.sh"
+
+ui_print "- Permissions set successfully"
+ui_print "- Termux Keeper installed!"
