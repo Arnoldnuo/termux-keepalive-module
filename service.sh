@@ -10,8 +10,8 @@ WATCH_APPS="
 com.termux:com.termux.HomeActivity
 "
 
-CHECK_INTERVAL=30   # 每隔多少秒检测一次
-BOOT_DELAY=60       # 开机后等待多少秒再启动（等系统稳定）
+CHECK_INTERVAL=30 # 每隔多少秒检测一次
+BOOT_DELAY=60 # 开机后等待多少秒再启动（等系统稳定）
 LOG_FILE="/data/adb/termux-keepalive/keepalive.log"
 MAX_LOG_SIZE=102400 # 日志最大 100KB
 # -------- 配置区结束 --------
@@ -38,6 +38,16 @@ is_running() {
     return $?
 }
 
+# 设置 oom_score_adj
+set_oom_adj() {
+    local pkg="$1"
+    local pid=$(pidof "$pkg")
+    if [ -n "$pid" ]; then
+        echo -1000 > /proc/$pid/oom_score_adj
+        log "Set oom_score_adj=-1000 for $pkg (pid=$pid)"
+    fi
+}
+
 # 启动 App（只拉起，不弹到前台打扰用户）
 launch_app() {
     local pkg="$1"
@@ -48,6 +58,9 @@ launch_app() {
     if ! is_running "$pkg"; then
         am start -n "$pkg/$activity" > /dev/null 2>&1
     fi
+    # 等待进程启动后设置 oom_score_adj
+    sleep 2
+    set_oom_adj "$pkg"
 }
 
 # 等待系统启动完成
@@ -77,6 +90,9 @@ while true; do
             log "DEAD detected: $pkg — restarting..."
             launch_app "$pkg" "$activity"
             log "Restarted: $pkg"
+        else
+            # 进程存在但 oom_score_adj 可能被重置，定期确保设置
+            set_oom_adj "$pkg"
         fi
     done
 done
