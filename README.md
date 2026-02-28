@@ -5,7 +5,7 @@
 在kernelSU的模块tab里把zip包加载进去就行
 
 
-模块在手机上的目录：/data/adb/modules/termux-app-keepalive
+
 
 
 参考：https://kernelsu.org/zh_CN/guide/module.html#kernelsu-modules
