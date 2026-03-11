@@ -26,6 +26,7 @@ is_alive() {
 log "daemon started"
 
 while true; do
+    log "Checking $pkg running status..."
     if ! is_alive; then
         log "worker dead → restarting"
         start_worker

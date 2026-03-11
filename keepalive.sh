@@ -53,7 +53,8 @@ launch_app() {
     local pkg="$1"
     local activity="$2"
     # monkey 方式：静默拉起，不弹前台
-    monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1
+    # monkey 会导致禁用屏幕旋转的功能被关闭，所以先不用monkey
+    # monkey -p "$pkg" -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1
     # 如果 monkey 失败，用 am start 兜底
     if ! is_running "$pkg"; then
         am start -n "$pkg/$activity" > /dev/null 2>&1
@@ -82,6 +83,7 @@ while true; do
     sleep "$CHECK_INTERVAL"
 
     for entry in $WATCH_APPS; do
+        log "Checking $pkg running status..."
         pkg=$(echo "$entry" | cut -d: -f1)
         activity=$(echo "$entry" | cut -d: -f2)
         [ -z "$pkg" ] && continue
