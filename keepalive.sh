@@ -98,3 +98,7 @@ while true; do
         fi
     done
 done
+
+# 关闭幻影进程杀手，防止termux出现[Process completed (signal 9)]的问题
+device_config set_sync_disabled_for_tests persistent
+device_config put activity_manager max_phantom_processes 2147483647
