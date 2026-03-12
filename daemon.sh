@@ -20,7 +20,9 @@ start_worker() {
 is_alive() {
     [ -f "$PIDFILE" ] || return 1
     pid=$(cat "$PIDFILE")
-    kill -0 "$pid" 2>/dev/null
+    [ -z "$pid" ] && return 1
+    # 检查进程存在 且 确认是sh进程（防PID复用）
+    kill -0 "$pid" 2>/dev/null && [ -d "/proc/$pid" ]
 }
 
 log "daemon started"

@@ -64,7 +64,7 @@ set_oom_adj() {
 launch_app() {
     local pkg="$1"
     local activity="$2"
-    log "monkey launch app: $pkg, $activity"
+    log "launch app: $pkg, $activity"
 
     if ! is_running "$pkg"; then
         log "am start launch app: $pkg, $activity"
