@@ -30,12 +30,24 @@ log() {
     fi
 }
 
-# 检查 App 进程是否存在
+# 检查 termux 进程是否存在，且termux-service也存在
 is_running() {
     local pkg="$1"
-    # 用 ps 检测包名进程
-    ps -ef | grep -v grep | grep "$pkg" > /dev/null 2>&1
-    return $?
+
+    # 检查主进程
+    if ! ps -ef | grep -v grep | grep -q "$pkg"; then
+        return 1
+    fi
+
+    # 如果是 termux，额外检查 runsvdir 是否存在
+    if [ "$pkg" = "com.termux" ]; then
+        if ! ps -ef | grep -v grep | grep -q runsvdir; then
+            log "com.termux is running but runsvdir is dead"
+            return 1
+        fi
+    fi
+
+    return 0
 }
 
 # 设置 oom_score_adj
@@ -48,22 +60,31 @@ set_oom_adj() {
     fi
 }
 
-# 启动 App（只拉起，不弹到前台打扰用户）
+# 启动 App，Termux 启动后需要等 runsvdir 拉起：
 launch_app() {
     local pkg="$1"
     local activity="$2"
     log "monkey launch app: $pkg, $activity"
-    # monkey 方式：静默拉起，不弹前台
-    # monkey 会导致禁用屏幕旋转的功能被关闭，所以要先保留屏幕旋转状态，然后monkey启动后再恢复
-    # 保存当前旋转状态
-    # monkey -p "$pkg" -c android.intent.category.LAUNCHER --pct-syskeys 0 --pct-anyevent 0 --pct-nav 0 --ignore-crashes --ignore-timeouts 1 > /dev/null 2>&1
 
-    # 如果 monkey 失败，用 am start 兜底
     if ! is_running "$pkg"; then
         log "am start launch app: $pkg, $activity"
         am start -n "$pkg/$activity" > /dev/null 2>&1
     fi
-    # 等待进程启动后设置 oom_score_adj
+
+    # 如果是 termux，等待 runsvdir 启动
+    if [ "$pkg" = "com.termux" ]; then
+        local retry=0
+        while ! ps -ef | grep -v grep | grep -q runsvdir; do
+            sleep 2
+            retry=$((retry + 1))
+            if [ $retry -ge 10 ]; then
+                log "WARNING: runsvdir still not started after 20s"
+                break
+            fi
+        done
+        log "runsvdir is up"
+    fi
+
     sleep 2
     set_oom_adj "$pkg"
 }
