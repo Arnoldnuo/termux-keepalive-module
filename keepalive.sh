@@ -56,9 +56,7 @@ launch_app() {
     # monkey 方式：静默拉起，不弹前台
     # monkey 会导致禁用屏幕旋转的功能被关闭，所以要先保留屏幕旋转状态，然后monkey启动后再恢复
     # 保存当前旋转状态
-    rotation=$(settings get system accelerometer_rotation)
-    monkey -p "$pkg" -c android.intent.category.LAUNCHER --pct-syskeys 0 --pct-anyevent 0 --pct-nav 0 --ignore-crashes --ignore-timeouts 1 > /dev/null 2>&1
-    settings put system accelerometer_rotation "$rotation"
+    # monkey -p "$pkg" -c android.intent.category.LAUNCHER --pct-syskeys 0 --pct-anyevent 0 --pct-nav 0 --ignore-crashes --ignore-timeouts 1 > /dev/null 2>&1
 
     # 如果 monkey 失败，用 am start 兜底
     if ! is_running "$pkg"; then
